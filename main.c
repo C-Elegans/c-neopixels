@@ -27,6 +27,10 @@ const uint8_t PROGMEM gamma8[] = {
   177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
   215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 };
 
+const uint8_t PROGMEM delays[] = {
+  10,8,6,6,4,4,4,3,3,3,3,3,3,4,4,4,6,6,8,10,0,0
+};
+
 typedef struct pixel{
   uint8_t g;
   uint8_t r;
@@ -57,23 +61,43 @@ void wheel(uint8_t pos, pixel* pixel){
 }
 
 
+
 int main(void){
   DDRB |= _BV(0) | _BV(1);
   PORTB &= ~_BV(0);
-  uint8_t pos = 0;
+  volatile int8_t pos = 20;
+  volatile int8_t flag = 0;
   while(1){
-    for(int i=0;i<PIXELS;i+=1){
-      wheel(pos+10*i, &pixels[i]);
-    }
     for(int i=0;i<PIXELS;i++){
-      send_byte(pgm_read_byte(&gamma8[pixels[i].g]) >> BRIGHTSHIFT);
-      send_byte(pgm_read_byte(&gamma8[pixels[i].r]) >> BRIGHTSHIFT);
-      send_byte(pgm_read_byte(&gamma8[pixels[i].b]) >> BRIGHTSHIFT);
+      uint8_t color = 0;
+      if(i == pos)
+	color = 0xff;
+      else if(i == pos-1)
+	color = 0xff;
+      else if(i == pos+1)
+	color = 0x80;
+      else if(i == pos-2)
+	color = 0x80;
+      else if(i<41 && i>=18)
+	color = 0x08;
+      send_byte(0);
+      send_byte(color);
+      send_byte(0);
     }
-    
-    PORTB &= ~_BV(0);
+    if(flag == 0)
+      pos++;
+    else
+      pos--;
+    if(pos >= 39){
+      flag = 1;
+    }
+    if(pos < 21)
+      flag = 0;
+
     _delay_loop_1(0xff);
-    _delay_ms(10);
-    pos++;
+    uint8_t delay = pgm_read_byte(&delays[pos-20]);
+    for(int i=0;i<delay;i++){
+      _delay_ms(10);
+    }
   }
 }

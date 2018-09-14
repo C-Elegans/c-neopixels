@@ -2,7 +2,7 @@ PART=atmega168
 SHORTPART=m168
 CC=avr-gcc
 LD=avr-gcc
-CFLAGS:=-mmcu=$(PART) -Os -mcall-prologues
+CFLAGS:=-mmcu=$(PART) -Og -mcall-prologues
 LDFLAGS:= -Wl,-Map,main.map
 CRT0O=/usr/local/avr/avr/lib/avr5/crt$(SHORTPART).o
 
