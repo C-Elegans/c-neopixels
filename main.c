@@ -31,6 +31,10 @@ const uint8_t PROGMEM delays[] = {
   10,8,6,6,4,4,4,3,3,3,3,3,3,4,4,4,6,6,8,10,0,0
 };
 
+const uint8_t lut[] = {
+  0x40, 0x80, 0xff, 0xff, 0xff, 0x80, 0x40, 0x40
+};
+
 typedef struct pixel{
   uint8_t g;
   uint8_t r;
@@ -65,20 +69,15 @@ void wheel(uint8_t pos, pixel* pixel){
 int main(void){
   DDRB |= _BV(0) | _BV(1);
   PORTB &= ~_BV(0);
-  volatile int8_t pos = 20;
+  volatile int8_t pos = 40;
   volatile int8_t flag = 0;
   while(1){
     for(int i=0;i<PIXELS;i++){
       uint8_t color = 0;
-      if(i == pos)
-	color = 0xff;
-      else if(i == pos-1)
-	color = 0xff;
-      else if(i == pos+1)
-	color = 0x80;
-      else if(i == pos-2)
-	color = 0x80;
-      else if(i<41 && i>=18)
+      if(i-pos/2 <4 && i-pos/2 >= 0){
+	color = lut[i*2-pos+1];
+      }
+      else if(i<42 && i>=19)
 	color = 0x08;
       send_byte(0);
       send_byte(color);
@@ -88,14 +87,14 @@ int main(void){
       pos++;
     else
       pos--;
-    if(pos >= 39){
+    if(pos >= 2*38){
       flag = 1;
     }
-    if(pos < 21)
+    if(pos < 40)
       flag = 0;
 
     _delay_loop_1(0xff);
-    uint8_t delay = pgm_read_byte(&delays[pos-20]);
+    uint8_t delay = pgm_read_byte(&delays[pos/2-20]);
     for(int i=0;i<delay;i++){
       _delay_ms(10);
     }
